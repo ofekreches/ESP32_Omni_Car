@@ -1,4 +1,4 @@
-#include "encoder.h"
+#include "/home/ofek/code/autonomous_car_control_mcu/main/Inc/encoder.h"
 
 void initEncoder(Encoder *enc, int encoderPinA, int encoderPinB) {
   
