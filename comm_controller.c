@@ -23,6 +23,5 @@ void sendData(CommController *comm) {
 void comm_controller_init(CommController *comm) {
     Serial.begin(comm->comm_buad_rate);
     Serial.setTimeout(1); ///TODO maybe need to alter
-    // Any other initialization steps can be added here
 }
 

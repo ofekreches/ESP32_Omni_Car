@@ -1,5 +1,5 @@
-#ifndef POS_PID_H
-#define POS_PID_H
+#ifndef VEL_PID_H
+#define VEL_PID_H
 
 typedef struct {
   float kp;
@@ -9,10 +9,10 @@ typedef struct {
   float control_signal;
   float last_error;
   float integral;
-} POS_PID;
+} VEL_PID;
 
 // Function prototypes
-void initPosPID(POS_PID *pid);
-float pos_pid_step(POS_PID *pid, float desired_position, float current_position);
+void initVelPID(VEL_PID *pid);
+float vel_pid_step(VEL_PID *pid, float desired_velocity, float current_velocity);
 
-#endif // POS_PID_H
+#endif // VEL_PID_H

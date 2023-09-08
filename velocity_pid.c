@@ -1,17 +1,17 @@
-#include "pos_pid.h"
+#include "vel_pid.h"
 
-void initPosPID(POS_PID *pid) {
-    pid->kp = POS_KP;
-    pid->ki = POS_KI;
-    pid->kd = POS_KD;
-    pid->i_windup = POS_I_WINDUP;
+void initVelPID(VEL_PID *pid) {
+    pid->kp = VEL_KP;
+    pid->ki = VEL_KI;
+    pid->kd = VEL_KD;
+    pid->i_windup = VEL_I_WINDUP;
     pid->control_signal = 0;
     pid->last_error = 0;
     pid->integral = 0;
 }
 
-float pos_pid_step(POS_PID *pid, float desired_position, float current_position) {
-    float error = desired_position - current_position;
+float vel_pid_step(VEL_PID *pid, float desired_velocity, float current_velocity) {
+    float error = desired_velocity - current_velocity;
     pid->integral += error;
     // Anti-windup
     if (pid->integral > pid->i_windup) pid->integral = pid->i_windup;

@@ -30,4 +30,9 @@
 #define VEL_KD 0.1
 #define VEL_I_WINDUP 1000.0
 
+
+//vehicle dimentions
+#define VEHICLE_WIDTH 0.2 // meter
+#define VEHICLE_LENGTH 0.3 //meter
+
 #endif // CONFIGURATION_H

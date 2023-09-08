@@ -9,8 +9,8 @@ typedef struct {
 
 // Function prototypes
 void initL298N(L298N *driver, int enA, int in1, int in2);
-void setL298NForward(L298N *driver, int speed);
-void setL298NBackward(L298N *driver, int speed);
-void stopL298NMotors(L298N *driver);
+void move_forward(L298N *driver, float speed);
+void move_backward(L298N *driver, float speed);
+void stop(L298N *driver);
 
 #endif // L298N_H

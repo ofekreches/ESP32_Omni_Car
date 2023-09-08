@@ -14,21 +14,21 @@ void initL298N(L298N *driver, int enA, int in1, int in2) {
     digitalWrite(in2, LOW);
 }
 
-void setL298NForward(L298N *driver, int speed) {
+void move_forward(L298N *driver, float speed) {
     speed = constrain(speed, 0, 255);
     analogWrite(driver->enA, speed);
     digitalWrite(driver->in1, HIGH);
     digitalWrite(driver->in2, LOW);
 }
 
-void setL298NBackward(L298N *driver, int speed) {
+void move_backward(L298N *driver, float speed) {
     speed = constrain(speed, 0, 255);
     analogWrite(driver->enA, speed);
     digitalWrite(driver->in1, LOW);
     digitalWrite(driver->in2, HIGH);
 }
 
-void stopL298NMotors(L298N *driver) {
+void stop(L298N *driver) {
     analogWrite(driver->enA, 0);
     digitalWrite(driver->in1, HIGH);
     digitalWrite(driver->in2, HIGH);
