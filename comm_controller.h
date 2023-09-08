@@ -7,18 +7,16 @@
 #define TAIL 199
 
 typedef struct {
-    float acceleration_required;
-    float steering_angle_required;
-} ReceivedData;
+    RxData[SIZE_OF_RX_DATA];
+    TxData[SIZE_OF_TX_dATA];
+    int comm_buad_rate = 115200;
+} CommController;
 
-typedef struct {
-    float current_x_pos;
-    float current_y_pos;
-    float current_heading;
-} SentData;
+
 
 // Function prototypes
-bool receiveData(ReceivedData *data);
-void sendData(const SentData *data);
+bool receiveData(CommController *comm);
+void sendData(CommController *comm);
+void comm_controller_init(CommController *comm);
 
 #endif // COMM_CONTROLLER_H

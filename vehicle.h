@@ -2,22 +2,24 @@
 #define VEHICLE_H
 
 #include "motor.h"
-#include <esp_timer.h>
 
 typedef struct {
-    float x;  // Center of the car
-    float y;  // Center of the car
-    float heading;
+    float vehicle_width;
+    float vehicle_length;
+    float current_x;  // refrence point is decided to be the center of the car
+    float current_y;  
+    float current_heading;
+    float desired_x;  
+    float desired_y;  
+    float desired_heading;
     float v;
     Motor left_motor;
     Motor right_motor;
     Motor steering_wheel;
-    float vehicle_width;
-    float vehicle_length;
 } Vehicle;
 
 void init_vehicle(Vehicle *vehicle, Motor left_motor, Motor right_motor, Motor steering_wheel);
-void compute_odometry(Vehicle *vehicle, float throttle_change, float steering_change);
-void computeVelocity(Vehicle *vehicle);  // Added this function prototype
+void compute_odometry(Vehicle *vehicle;
+void move(Vehicle *vehicle)
 
 #endif // VEHICLE_H
