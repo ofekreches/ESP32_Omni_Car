@@ -5,22 +5,44 @@
 #include "configuration.h"
 
 typedef struct {
+    float x;
+    float y;
+    float angular;  //heading in position
+} vector_3;
+
+typedef struct {    
+    vector_3 position;
+    vector_3 velocity;
+} Odometry;
+
+
+typedef struct {
+    vector_3 position_error;
+    vector_3 velocity_error;
+    float static_error;  // the encoder error (right now its an assumption) . TODO dynamic error - based on experiments in the future
+} Variance;
+
+
+typedef struct {
     float vehicle_width;
     float vehicle_length;
-    float current_x;  // refrence point is decided to be the center of the car
-    float current_y; 
-    float current_angular_velocity; 
-    float current_heading;
-    float desired_velocity;
-    float desired_heading;
-    float velocity;
+    Odometry desired_state;
+    Odometry current_state;
+    Odometry last_state;
+    Variance odometry_variance;  
     Motor left_motor;
     Motor right_motor;
     Motor steering_wheel;
 } Vehicle;
 
+
+
+
+
+
 void init_vehicle(Vehicle *vehicle, Motor left_motor, Motor right_motor, Motor steering_wheel);
-void compute_odometry(Vehicle *vehicle;
+void compute_odometry(Vehicle *vehicle);
+void compute_variance(Vehicle *vehicle);
 void move(Vehicle *vehicle);
 
 #endif // VEHICLE_H

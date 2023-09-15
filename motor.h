@@ -3,12 +3,13 @@
 
 #include "encoder.h"
 #include "pos_pid.h"
+#include "velocity_pid.h"
 #include "l298n.h"
 #include "velocity_pid.h"
 
 typedef enum {
-  POS_PID,
-  VELOCITY_PID
+  POSTION,
+  VELOCITY
 } ControlMode;
 
 typedef struct {
