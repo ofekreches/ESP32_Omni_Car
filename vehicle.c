@@ -5,7 +5,7 @@
 #define DT 0.01  // Sample time, you might need to adjust this - will be linked later to odometry calculation timer
 
 
-void init_vehicle(Vehicle *vehicle, Motor left_motor, Motor right_motor, Motor steering_wheel) {
+void init_vehicle(Vehicle *vehicle, Motor left_front_motor, Motor right_front_motor,  Motor left_rear_motor, Motor right_rear_motor) {
     vehicle->current_state.x = 0.0;
     vehicle->current_state.y = 0.0;
     vehicle->current_state.heading = 0.0;
@@ -27,9 +27,11 @@ void init_vehicle(Vehicle *vehicle, Motor left_motor, Motor right_motor, Motor s
     vehicle->desired_state.velocity_y = 0.0;
     vehicle->desired_state.angular_velocity = 0.0;
 
-    vehicle->left_motor = left_motor;
-    vehicle->right_motor = right_motor;
-    vehicle->steering_wheel = steering_wheel;
+    vehicle->left_front_motor = left_front_motor;
+    vehicle->right_front_motor = right_front_motor;
+    vehicle->left_rear_motor = left_rear_motor;
+    vehicle->right_rear_motor = right_rear_motor;
+    
 
     vehicle->vehicle_width = VEHICLE_WIDTH;
     vehicle->vehicle_length = VEHICLE_LENGTH;
@@ -37,22 +39,58 @@ void init_vehicle(Vehicle *vehicle, Motor left_motor, Motor right_motor, Motor s
     vehicle->odometry_variance.static_error = ENCODER_ERROR * ENCODER_ERROR;
 }
 
+// void compute_odometry(Vehicle *vehicle) {
+//     // Compute the steering change
+//     float steering_change = vehicle->steering_motor->current_position - vehicle->steering_motor->last_position;
+
+//     // Update the last position of the steering motor
+//     vehicle->steering_motor->last_position = vehicle->steering_motor->current_position;
+
+//     float rear_x_delta = vehicle->velocity * cos(vehicle->heading) * DT;
+//     float rear_y_delta = vehicle->velocity * sin(vehicle->heading) * DT;
+
+//     vehicle->heading += vehicle->velocity / vehicle->vehicle_length * tan(steering_change) * DT;
+//     vehicle->velocity = (vehicle->left_motor->current_velocity + vehicle->right_motor->current_velocity) / 2.0;
+
+//     // Adjusting for center of the car
+//     vehicle->x += rear_x_delta + 0.5 * vehicle->vehicle_length * cos(vehicle->heading);
+//     vehicle->y += rear_y_delta + 0.5 * vehicle->vehicle_length * sin(vehicle->heading);
+// }
+
+
+
 void compute_odometry(Vehicle *vehicle) {
-    // Compute the steering change
-    float steering_change = vehicle->steering_motor->current_position - vehicle->steering_motor->last_position;
+    // Extracting wheel angular velocities
+    float omega_fl = vehicle->left_front_motor.current_velocity;
+    float omega_fr = vehicle->right_front_motor.current_velocity;
+    float omega_rl = vehicle->left_rear_motor.current_velocity;
+    float omega_rr = vehicle->right_rear_motor.current_velocity;
+    
+    // Wheel radius
+    float r = vehicle->left_front_motor.wheelDiameter / 2.0; 
+    float lx_ly_sum = vehicle->vehicle_width + vehicle->vehicle_length;
 
-    // Update the last position of the steering motor
-    vehicle->steering_motor->last_position = vehicle->steering_motor->current_position;
+    // Calculating base velocities using forward kinematics
+    vehicle->current_state.velocity.x = r/4.0 * (omega_fl + omega_fr + omega_rl + omega_rr);
+    vehicle->current_state.velocity.y = r/4.0 * (-omega_fl + omega_fr + omega_rl - omega_rr);
+    vehicle->current_state.velocity.angular = r/(4.0 * lx_ly_sum) * (-omega_fl + omega_fr - omega_rl + omega_rr);
+    
+    // Computing odometry (integrating velocities to get position)
+    vehicle->current_state.position.x += vehicle->current_state.velocity.x * DT;
+    vehicle->current_state.position.y += vehicle->current_state.velocity.y * DT;
+    vehicle->current_state.position.angular += vehicle->current_state.velocity.angular * DT;
+}
 
-    float rear_x_delta = vehicle->velocity * cos(vehicle->heading) * DT;
-    float rear_y_delta = vehicle->velocity * sin(vehicle->heading) * DT;
+void translate_twist_to_velocity(Vehicle *vehicle) {
+    // Wheel radius
+    float r = vehicle->left_front_motor.wheelDiameter / 2.0; 
+    float lx_ly_sum = vehicle->vehicle_width + vehicle->vehicle_length;
 
-    vehicle->heading += vehicle->velocity / vehicle->vehicle_length * tan(steering_change) * DT;
-    vehicle->velocity = (vehicle->left_motor->current_velocity + vehicle->right_motor->current_velocity) / 2.0;
-
-    // Adjusting for center of the car
-    vehicle->x += rear_x_delta + 0.5 * vehicle->vehicle_length * cos(vehicle->heading);
-    vehicle->y += rear_y_delta + 0.5 * vehicle->vehicle_length * sin(vehicle->heading);
+    // Calculating wheel angular velocities using inverse kinematics
+    vehicle->left_front_motor.desired_velocity = (1.0/r) * (vehicle->desired_state.velocity.x - vehicle->desired_state.velocity.y - lx_ly_sum * vehicle->desired_state.velocity.angular);
+    vehicle->right_front_motor.desired_velocity = (1.0/r) * (vehicle->desired_state.velocity.x + vehicle->desired_state.velocity.y + lx_ly_sum * vehicle->desired_state.velocity.angular);
+    vehicle->left_rear_motor.desired_velocity = (1.0/r) * (vehicle->desired_state.velocity.x + vehicle->desired_state.velocity.y - lx_ly_sum * vehicle->desired_state.velocity.angular);
+    vehicle->right_rear_motor.desired_velocity = (1.0/r) * (vehicle->desired_state.velocity.x - vehicle->desired_state.velocity.y + lx_ly_sum * vehicle->desired_state.velocity.angular);
 }
 
 

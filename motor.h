@@ -8,7 +8,7 @@
 #include "velocity_pid.h"
 
 typedef enum {
-  POSTION,
+  POSITION,
   VELOCITY
 } ControlMode;
 

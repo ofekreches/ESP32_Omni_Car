@@ -16,10 +16,11 @@ void initMotor(Motor *motor, Encoder enc, L298N driver, ControlMode control_Mode
     motor->vel_pid = vel_pid;
     motor->ticksPerTurn = TICKS_PER_TURN;
     motor->wheelDiameter = WHEEL_DIAMETER;
-    motor->distancePerTick = motor->wheelDiameter * PI / motor->ticksPerTurn;
+    motor->distancePerTick = PI / motor->ticksPerTurn;
     initEncoder(&motor->encoder, encoderPinA, encoderPinB);
     initL298N(&motor->l298n, l298nENA, l298nIN1, l298nIN2);
     initPosPID(&motor->pos_pid);
+    initVelPID(&motore->vel_pid);
     motor->lastUpdateTime = esp_timer_get_time();
 }
 
@@ -48,11 +49,12 @@ void motor_step(Motor *motor) {
   float control_signal = 0;
   switch(motor->controlMode){
 
-    case POS_PID:
+    case POSITION:
         control_signal = pos_pid_step(&motor->pos_pid, motor->desired_position , motor->current_position);
         break;
 
-    case VELOCITY_PID:
+    case VELOCITY:
+        computeVelocity(motor);
         control_signal = vel_pid_step(&motor->vel_pid, motor->desired_velocity , motor->current_velocity);
         break;
 
