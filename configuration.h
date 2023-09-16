@@ -4,6 +4,7 @@
 // Encoder configuration
 #define ENCODER_PIN_A 19
 #define ENCODER_PIN_B 18
+#define ENCODER_ERROR 0.1
 
 
 // Motor configuration
@@ -34,5 +35,9 @@
 //vehicle dimentions
 #define VEHICLE_WIDTH 0.2 // meter
 #define VEHICLE_LENGTH 0.3 //meter
+
+
+//timer configurations
+#define DT 0.01  // Sample time, you might need to adjust this - will be linked later to odometry calculation timer
 
 #endif // CONFIGURATION_H
