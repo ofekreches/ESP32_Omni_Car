@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "encoder.h": "c"
+        "encoder.h": "c",
+        "*.tcc": "c"
     }
 }
