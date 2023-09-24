@@ -1,4 +1,6 @@
 #include "vel_pid.h"
+#include "configuration.h"
+
 
 void initVelPID(VEL_PID *pid) {
     pid->kp = VEL_KP;

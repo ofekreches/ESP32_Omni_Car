@@ -1,4 +1,5 @@
 #include "pos_pid.h"
+#include "configuration.h"
 
 void initPosPID(POS_PID *pid) {
     pid->kp = POS_KP;

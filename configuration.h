@@ -2,17 +2,17 @@
 #define CONFIGURATION_H
 
 // Encoder configuration for 4 motors
-#define ENCODER1_PIN_A 19
-#define ENCODER1_PIN_B 18
+#define LF_ENCODER_PIN_A 19
+#define LF_ENCODER_PIN_B 18
 
-#define ENCODER2_PIN_A 5
-#define ENCODER2_PIN_B 4
+#define RR_ENCODER_PIN_A 5
+#define RR_ENCODER_PIN_B 4
 
-#define ENCODER3_PIN_A 15
-#define ENCODER3_PIN_B 14
+#define LR_ENCODER_PIN_A 15
+#define LR_ENCODER_PIN_B 14
 
-#define ENCODER4_PIN_A 23
-#define ENCODER4_PIN_B 22
+#define RF_ENCODER_PIN_A 23
+#define RF_ENCODER_PIN_B 22
 
 #define ENCODER_ERROR 0.1
 
@@ -21,21 +21,21 @@
 #define WHEEL_DIAMETER 80.0
 
 // L298N configuration for 4 motors
-#define L298N1_ENA 25
-#define L298N1_IN1 26
-#define L298N1_IN2 27
+#define LF_L298N_ENA 25
+#define LF_L298N_IN1 26
+#define LF_L298N_IN2 27
 
-#define L298N2_ENA 32
-#define L298N2_IN1 33
-#define L298N2_IN2 13
+#define RR_L298N_ENA 32
+#define RR_L298N_IN1 33
+#define RR_L298N_IN2 13
 
-#define L298N3_ENA 12  // OK, but ensure it doesn't interfere with boot if pulled high.
-#define L298N3_IN1 2   // OK, but ensure it doesn't interfere with boot if pulled low.
-#define L298N3_IN2 4   // Safe to use
+#define LR_L298N_ENA 12
+#define LR_L298N_IN1 2
+#define LR_L298N_IN2 4
 
-#define L298N4_ENA 16
-#define L298N4_IN1 17
-#define L298N4_IN2 21
+#define RF_L298N_ENA 16
+#define RF_L298N_IN1 17
+#define RF_L298N_IN2 21
 
 // Pos PID configuration
 #define POS_KP 1.0
@@ -57,7 +57,9 @@
 #define DT 0.01  // Sample time, you might need to adjust this - will be linked later to odometry calculation timer
 
 // communication configuration
-#define SIZE_OF_RX_DATA 64
-#define SIZE_OF_TX_DATA 64
+#define SIZE_OF_RX_DATA 18  // 2 headrs +type of command + vector 3 of commands + check sum + tail
+#define SIZE_OF_TX_DATA 52  // 2 headers + odometry + variance + check sum + tail
+#define HEADER 200
+#define TAIL 199
 
 #endif // CONFIGURATION_H

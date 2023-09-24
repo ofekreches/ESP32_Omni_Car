@@ -30,7 +30,7 @@ typedef struct {
 } Motor;
 
 // Function prototypes
-void initMotor(Motor *motor, Encoder enc, L298N driver, ControlMode control_Mode, POS_PID pos_pid, VEL_PID vel_pid, int encoderPinA, int encoderPinB, int l298nENA, int l298nIN1, int l298nIN2);
+void initMotor(Motor *motor, Encoder enc, L298N driver, POS_PID pos_pid, VEL_PID vel_pid);
 void computeVelocity(Motor *motor);
 void updateMotor(Motor *motor);
 void motor_step(Motor *motor);

@@ -3,7 +3,7 @@
 #include <esp_timer.h>
 
 
-void initMotor(Motor *motor, Encoder enc, L298N driver, ControlMode control_Mode, POS_PID pos_pid, VEL_PID vel_pid, int encoderPinA, int encoderPinB, int l298nENA, int l298nIN1, int l298nIN2) {
+void initMotor(Motor *motor, Encoder enc, L298N driver, ControlMode control_Mode, POS_PID pos_pid, VEL_PID vel_pid) {
     motor->desired_position = 0;
     motor->current_position = 0;
     motor->desired_velocity = 0;
@@ -16,11 +16,7 @@ void initMotor(Motor *motor, Encoder enc, L298N driver, ControlMode control_Mode
     motor->vel_pid = vel_pid;
     motor->ticksPerTurn = TICKS_PER_TURN;
     motor->wheelDiameter = WHEEL_DIAMETER;
-    motor->distancePerTick = PI / motor->ticksPerTurn;
-    initEncoder(&motor->encoder, encoderPinA, encoderPinB);
-    initL298N(&motor->l298n, l298nENA, l298nIN1, l298nIN2);
-    initPosPID(&motor->pos_pid);
-    initVelPID(&motore->vel_pid);
+    motor->distancePerTick = (2.0 * PI) / motor->ticksPerTurn;  //in radiands
     motor->lastUpdateTime = esp_timer_get_time();
 }
 
@@ -39,30 +35,29 @@ void computeVelocity(Motor *motor) {
     }
 }
 
-void updateMotor(Motor *motor) {
+void updateMotor(Motor *motor) {  //updates position and velocity
     motor->current_position = getEncoderCount(&motor->encoder) * motor->distancePerTick;  //update position
     computeVelocity(motor); // update velocity
 }
 
 
 void motor_step(Motor *motor) {
-  float control_signal = 0;
-  switch(motor->controlMode){
+    updateMotor(motor);
+    float control_signal = 0;
+    switch(motor->controlMode){
 
-    case POSITION:
-        control_signal = pos_pid_step(&motor->pos_pid, motor->desired_position , motor->current_position);
-        break;
+        case POSITION:
+            control_signal = pos_pid_step(&motor->pos_pid, motor->desired_position , motor->current_position);
+            break;
 
-    case VELOCITY:
-        computeVelocity(motor);
-        control_signal = vel_pid_step(&motor->vel_pid, motor->desired_velocity , motor->current_velocity);
-        break;
+        case VELOCITY:
+            control_signal = vel_pid_step(&motor->vel_pid, motor->desired_velocity , motor->current_velocity);
+            break;
+        }
 
     if (control_signal > 0) move_forward(&motor->l298n , control_signal);
     if (control_signal < 0) move_backward(&motor->l298n , -control_signal);
     if (control_signal == 0) stop(&motor->l298n);
-
-  }
 }
 
 

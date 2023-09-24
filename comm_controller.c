@@ -2,66 +2,88 @@
 #include <Arduino.h>
 
 #include "vehicle.h"
-
+#include "configuration.h"
 
 
 void comm_controller_init(CommController *comm) {
     Serial.begin(comm->comm_buad_rate);
-    Serial.setTimeout(1); ///TODO maybe need to alter
+    memset(comm->RxData, 0, SIZE_OF_RX_DATA);
+    memset(comm->TxData, 0, SIZE_OF_TX_DATA);
+    Serial.setTimeout(1); ///time in mili-seconds
 }
 
 
-#define HEADER_1 0xAA  // Assuming the values for your header and tail
-#define HEADER_2 0x55
+
+#define HEADER 0xAA  // Example definition, adjust as needed
 #define TAIL 0x5A
+#define POSITION 0x00
+#define VELOCITY 0x01
 
-
-
-bool receiveData(CommController *comm, Vehicle *vehicle) {
-    
+void receiveData(CommController *comm, Vehicle *vehicle) {
     if (Serial.available() >= SIZE_OF_RX_DATA) {
         Serial.readBytes(comm->RxData, SIZE_OF_RX_DATA);
 
-        if (comm->RxData[0] == HEADER_1 && comm->RxData[1] == HEADER_2) {
-            byte payloadSize = comm->RxData[2];
-            
-
-            float desiredX, desiredY, desiredAngular;
-            memcpy(&desiredX, &comm->RxData[4], 4);
-            memcpy(&desiredY, &comm->RxData[8], 4);
-            memcpy(&desiredAngular, &comm->RxData[12], 4);
-
-            // Checksum verification
+        if (comm->RxData[0] == HEADER && comm->RxData[1] == HEADER && comm->RxData[SIZE_OF_RX_DATA - 1] == TAIL) {
             byte checksum = 0;
             for (int i = 4; i < 12; i++) {
                 checksum += comm->RxData[i];
             }
-
-            if (comm->RxData[SIZE_OF_RX_DATA - 2] == checksum && comm->RxData[SIZE_OF_RX_DATA - 1] == TAIL) {
+            if (comm->RxData[SIZE_OF_RX_DATA - 2] == checksum) {  //passed all integrity checks
                 if (comm->RxData[3] == POSITION) {
-                    vehicle->desired_state.position.x = desiredX;
-                    vehicle->desired_state.position.y = desiredY;
-                    vehicle->desired_state.position.angular = desiredAngular;
-                } else if (comm->RxData[3] == VELOCITY) {
-                    vehicle->desired_state.velocity.x = desiredX;
-                    vehicle->desired_state.velocity.y = desiredY;
-                    vehicle->desired_state.velocity.angular = desiredAngular;
+                    memcpy(&vehicle->desired_state.position.x, &comm->RxData[4], 4);
+                    memcpy(&vehicle->desired_state.position.y, &comm->RxData[8], 4);
+                    memcpy(&vehicle->desired_state.position.angular, &comm->RxData[12], 4);
                 }
-                return true; // Data received and parsed successfully
+                else if (comm->RxData[3] == VELOCITY) {
+                    memcpy(&vehicle->desired_state.velocity.x, &comm->RxData[4], 4);
+                    memcpy(&vehicle->desired_state.velocity.y, &comm->RxData[8], 4);
+                    memcpy(&vehicle->desired_state.velocity.angular, &comm->RxData[12], 4);
+                }
+            }
+            else {
+                memset(comm->RxData, 0, SIZE_OF_RX_DATA);  // Clear the buffer
             }
         }
+        else {
+            memset(comm->RxData, 0, SIZE_OF_RX_DATA);  // Clear the buffer
+        }
     }
-    return false; // Data not received or incorrect format
 }
 
 
 
-void sendData(CommController *comm, Vehicle *Vehicle) {
-    Serial.write(HEADER_1);
-    Serial.write(HEADER_2);
-    Serial.write(comm->TxData, 3 * sizeof(float)); // Assuming TxData is a byte array and you're sending 3 floats
-    Serial.write(TAIL);
+void sendData(CommController *comm, const Vehicle *vehicle) {
+    comm->TxData[0] = HEADER;
+    comm->TxData[1] = HEADER;
+
+    memcpy(&comm->TxData[2], &vehicle->current_state.position.x, 4);
+    memcpy(&comm->TxData[6], &vehicle->current_state.position.y, 4);
+    memcpy(&comm->TxData[10], &vehicle->current_state.position.angular, 4);
+
+    memcpy(&comm->TxData[14], &vehicle->current_state.velocity.x, 4);
+    memcpy(&comm->TxData[18], &vehicle->current_state.velocity.y, 4);
+    memcpy(&comm->TxData[22], &vehicle->current_state.velocity.angular, 4);
+
+    memcpy(&comm->TxData[26], &vehicle->odometry_variance.position_error.x, 4);
+    memcpy(&comm->TxData[30], &vehicle->odometry_variance.position_error.y, 4);
+    memcpy(&comm->TxData[34], &vehicle->odometry_variance.position_error.angular, 4);
+
+    memcpy(&comm->TxData[38], &vehicle->odometry_variance.velocity_error.x, 4);
+    memcpy(&comm->TxData[42], &vehicle->odometry_variance.velocity_error.y, 4);
+    memcpy(&comm->TxData[46], &vehicle->odometry_variance.velocity_error.angular, 4);
+
+    // Compute checksum
+    byte checksum = 0;
+    for (int i = 2; i < 50; i++) {  
+        checksum += comm->TxData[i];
+    }
+    comm->TxData[50] = checksum;
+    comm->TxData[51] = TAIL;
+
+    // Send data
+    Serial.write(comm->TxData, SIZE_OF_TX_DATA);
 }
+
 
 
 

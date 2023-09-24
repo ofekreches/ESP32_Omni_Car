@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "encoder.h": "c",
-        "*.tcc": "c"
+        "*.tcc": "c",
+        "motor.h": "c",
+        "configuration.h": "c"
     }
 }

@@ -2,7 +2,6 @@
 #include "configuration.h"
 #include <math.h>
 
-#define DT 0.01  // Sample time, you might need to adjust this - will be linked later to odometry calculation timer
 
 
 void init_vehicle(Vehicle *vehicle, Motor left_front_motor, Motor right_front_motor,  Motor left_rear_motor, Motor right_rear_motor) {
@@ -36,7 +35,7 @@ void init_vehicle(Vehicle *vehicle, Motor left_front_motor, Motor right_front_mo
     vehicle->vehicle_width = VEHICLE_WIDTH;
     vehicle->vehicle_length = VEHICLE_LENGTH;
 
-    vehicle->odometry_variance.static_error = ENCODER_ERROR * ENCODER_ERROR;
+    vehicle->odometry_variance.static_error = ENCODER_ERROR **2;
 }
 
 // void compute_odometry(Vehicle *vehicle) {
@@ -76,12 +75,15 @@ void compute_odometry(Vehicle *vehicle) {
     vehicle->current_state.velocity.angular = r/(4.0 * lx_ly_sum) * (-omega_fl + omega_fr - omega_rl + omega_rr);
     
     // Computing odometry (integrating velocities to get position)
-    vehicle->current_state.position.x += vehicle->current_state.velocity.x * DT;
-    vehicle->current_state.position.y += vehicle->current_state.velocity.y * DT;
-    vehicle->current_state.position.angular += vehicle->current_state.velocity.angular * DT;
+    vehicle->current_state.position.x += vehicle->current_state.velocity.x * ODOMETRY_DT;
+    vehicle->current_state.position.y += vehicle->current_state.velocity.y * ODOMETRY_DT;
+    vehicle->current_state.position.angular += vehicle->current_state.velocity.angular * ODOMETRY_DT;
+    compute_variance(vehicle);
 }
 
-void translate_twist_to_velocity(Vehicle *vehicle) {
+
+
+void translate_twist_to_motor_commands(Vehicle *vehicle) {
     // Wheel radius
     float r = vehicle->left_front_motor.wheelDiameter / 2.0; 
     float lx_ly_sum = vehicle->vehicle_width + vehicle->vehicle_length;
@@ -95,29 +97,47 @@ void translate_twist_to_velocity(Vehicle *vehicle) {
 
 
 
+// void compute_variance(Vehicle *vehicle) {   //skid steering logic
+//     // Base variance based on encoder error for wheels and steering
+
+
+//     // Calculate the differences between current and last odometry states
+//     float x_difference = vehicle->current_state.x - vehicle->last_state.x;
+//     float y_difference = vehicle->current_state.y - vehicle->last_state.y;
+//     float heading_difference = vehicle->current_state.heading - vehicle->last_state.heading;
+//     float velocity_x_difference = vehicle->current_state.velocity_x - vehicle->last_state.velocity_x;
+//     float velocity_y_difference = vehicle->current_state.velocity_y - vehicle->last_state.velocity_y;
+//     float angular_velocity_difference = vehicle->current_state.angular_velocity - vehicle->last_state.angular_velocity;
+
+//     // Compute variances based on differences
+//     vehicle->odometry_variance.x = vehicle->odometry_variance.static_error * x_difference;
+//     vehicle->odometry_variance.y = vehicle->odometry_variance.static_error * y_difference;
+//     vehicle->odometry_variance.heading = steering_encoder_variance * heading_difference;
+//     vehicle->odometry_variance.velocity_x = vehicle->odometry_variance.static_error * velocity_x_difference;
+//     vehicle->odometry_variance.velocity_y = vehicle->odometry_variance.static_error * velocity_y_difference;
+//     vehicle->odometry_variance.angular_velocity = vehicle->odometry_variance.static_error * angular_velocity_difference;
+// }
+
+
+
+
 void compute_variance(Vehicle *vehicle) {
-    // Base variance based on encoder error for wheels and steering
-
-
     // Calculate the differences between current and last odometry states
-    float x_difference = vehicle->current_state.x - vehicle->last_state.x;
-    float y_difference = vehicle->current_state.y - vehicle->last_state.y;
-    float heading_difference = vehicle->current_state.heading - vehicle->last_state.heading;
-    float velocity_x_difference = vehicle->current_state.velocity_x - vehicle->last_state.velocity_x;
-    float velocity_y_difference = vehicle->current_state.velocity_y - vehicle->last_state.velocity_y;
-    float angular_velocity_difference = vehicle->current_state.angular_velocity - vehicle->last_state.angular_velocity;
+    float x_difference = vehicle->current_state.position.x - vehicle->last_state.position.x;
+    float y_difference = vehicle->current_state.position.y - vehicle->last_state.position.y;
+    float angular_difference = vehicle->current_state.position.angular - vehicle->last_state.position.angular;
+    float velocity_x_difference = vehicle->current_state.velocity.x - vehicle->last_state.velocity.x;
+    float velocity_y_difference = vehicle->current_state.velocity.y - vehicle->last_state.velocity.y;
+    float angular_velocity_difference = vehicle->current_state.velocity.angular - vehicle->last_state.velocity.angular;
 
-    // Compute variances based on differences
-    vehicle->odometry_variance.x = vehicle->odometry_variance.static_error * x_difference;
-    vehicle->odometry_variance.y = vehicle->odometry_variance.static_error * y_difference;
-    vehicle->odometry_variance.heading = steering_encoder_variance * heading_difference;
-    vehicle->odometry_variance.velocity_x = vehicle->odometry_variance.static_error * velocity_x_difference;
-    vehicle->odometry_variance.velocity_y = vehicle->odometry_variance.static_error * velocity_y_difference;
-    vehicle->odometry_variance.angular_velocity = vehicle->odometry_variance.static_error * angular_velocity_difference;
+    // Compute variances based on differences and static error
+    vehicle->odometry_variance.position_error.x = vehicle->odometry_variance.static_error * x_difference;
+    vehicle->odometry_variance.position_error.y = vehicle->odometry_variance.static_error * y_difference;
+    vehicle->odometry_variance.position_error.angular = vehicle->odometry_variance.static_error * angular_difference;
+    vehicle->odometry_variance.velocity_error.x = vehicle->odometry_variance.static_error * velocity_x_difference;
+    vehicle->odometry_variance.velocity_error.y = vehicle->odometry_variance.static_error * velocity_y_difference;
+    vehicle->odometry_variance.velocity_error.angular = vehicle->odometry_variance.static_error * angular_velocity_difference;
 }
 
 
-void move(Vehicle *vehicle){  //updating desired velocity/position to different motors based on the received message from serial
-    vehicke->desired_state->velocity_x = vehicle->left_motor->desired_velocity
-    vehicle->right_motor->desired_velocity
-} 
+
