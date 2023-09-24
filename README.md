@@ -1,7 +1,7 @@
 # RTmcu - autonomous car low level control
 **the codes on the esp32 mcu:**
 
-**core 1 - odometry and control:**
+**core 1 -control:**
 
 1)computes vel pid for 4 throttle motors in omni wheels configuration
 
