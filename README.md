@@ -21,6 +21,7 @@
 4) add current sensing for each motor
 5) implement machine learning algorithm to predict wheel sleepage based on current readings
 6) correcting encoder odometry and variance based on sleepage
+7) computational load management between cores
 
 
 # maybe this is too much for the little fellow?
