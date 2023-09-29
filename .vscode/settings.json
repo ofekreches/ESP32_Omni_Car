@@ -3,6 +3,7 @@
         "encoder.h": "c",
         "*.tcc": "c",
         "motor.h": "c",
-        "configuration.h": "c"
+        "configuration.h": "c",
+        "velocity_pid.h": "c"
     }
 }

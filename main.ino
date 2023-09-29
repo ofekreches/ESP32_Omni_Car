@@ -9,8 +9,25 @@
 #include "encoder.h"
 #include "l298n.h"
 
-POS_PID pos_pid; 
-VEL_PID vel_pid; 
+POS_PID pos_pid_left_front_motor;
+POS_PID pos_pid_right_front_motor;
+POS_PID pos_pid_left_rear_motor;
+POS_PID pos_pid_right_rear_motor;
+
+VEL_PID vel_pid_left_front_motor;
+VEL_PID vel_pid_right_front_motor;
+VEL_PID vel_pid_left_rear_motor;
+VEL_PID vel_pid_right_rear_motor;
+
+POS_PID pos_pid_x; 
+POS_PID pos_pid_y;
+POS_PID pos_pid_heading;
+
+VEL_PID vel_pid_x;
+VEL_PID vel_pid_y;
+VEL_PID vel_pid_heading;
+
+Vehicle_PIDs vehicle_pids;
 
 Encoder encoderLF;
 Encoder encoderRR;
@@ -32,16 +49,37 @@ Vehicle vehicle;
 CommController comm;
 
 TaskHandle_t MotorControlTask;
-TaskHandle_t OdometryTask;
+TaskHandle_t vehicleControlTask;
 TaskHandle_t CommunicationTask;
 
 SemaphoreHandle_t vehicleMutex;
 
 void setup() {
 
-    //init PIDs
-    initPosPID(&pos_pid);
-    initVelPID(&vel_pid);
+    // init vehicle PIDs
+    initPosPID(&pos_pid_x, POS_KP, POS_KI, POS_KD, POS_I_WINDUP);
+    initPosPID(&pos_pid_y, POS_KP, POS_KI, POS_KD, POS_I_WINDUP);
+    initPosPID(&pos_pid_heading, POS_KP, POS_KI, POS_KD, POS_I_WINDUP);
+
+    initVelPID(&vel_pid_x, VEL_KP, VEL_KI, VEL_KD, VEL_I_WINDUP);
+    initVelPID(&vel_pid_y, VEL_KP, VEL_KI, VEL_KD, VEL_I_WINDUP);
+    initVelPID(&vel_pid_heading, VEL_KP, VEL_KI, VEL_KD, VEL_I_WINDUP);
+
+    // init PIDs for each motor
+    initPosPID(&pos_pid_left_front_motor, POS_KP, POS_KI, POS_KD, POS_I_WINDUP);
+    initVelPID(&vel_pid_left_front_motor, VEL_KP, VEL_KI, VEL_KD, VEL_I_WINDUP);
+
+    initPosPID(&pos_pid_right_front_motor, POS_KP, POS_KI, POS_KD, POS_I_WINDUP);
+    initVelPID(&vel_pid_right_front_motor, VEL_KP, VEL_KI, VEL_KD, VEL_I_WINDUP);
+
+    initPosPID(&pos_pid_left_rear_motor, POS_KP, POS_KI, POS_KD, POS_I_WINDUP);
+    initVelPID(&vel_pid_left_rear_motor, VEL_KP, VEL_KI, VEL_KD, VEL_I_WINDUP);
+
+    initPosPID(&pos_pid_right_rear_motor, POS_KP, POS_KI, POS_KD, POS_I_WINDUP);
+    initVelPID(&vel_pid_right_rear_motor, VEL_KP, VEL_KI, VEL_KD, VEL_I_WINDUP);
+
+
+    init_vehicle_pids(&vehicle_pids, &vel_pid_x, &vel_pid_y, &vel_pid_heading, &pos_pid_x, &pos_pid_y, &pos_pid_heading);
 
     // init encoders
     initEncoder(&encoderLF, LF_ENCODER_PIN_A, LF_ENCODER_PIN_B);  
@@ -56,13 +94,13 @@ void setup() {
     initL298N(&driverRF, RF_L298N_ENA, RF_L298N_IN1, RF_L298N_IN2);
 
     //init motors
-    initMotor(&left_front_motor, encoderLF, driverLF, pos_pid, vel_pid); 
-    initMotor(&right_front_motor, encoderRF, driverRF, pos_pid, vel_pid);
-    initMotor(&left_rear_motor, encoderLR, driverLR, pos_pid, vel_pid);
-    initMotor(&right_rear_motor, encoderRR, driverRR, pos_pid, vel_pid);
+    initMotor(&left_front_motor, encoderLF, driverLF, pos_pid_left_front_motor, vel_pid_left_front_motor); 
+    initMotor(&right_front_motor, encoderRF, driverRF, pos_pid_right_front_motor, vel_pid_right_front_motor);
+    initMotor(&left_rear_motor, encoderLR, driverLR, pos_pid_left_rear_motor, vel_pid_left_rear_motor);
+    initMotor(&right_rear_motor, encoderRR, driverRR, pos_pid_right_rear_motor, vel_pid_right_rear_motor);
 
     //init vehicle
-    init_vehicle(&vehicle, left_front_motor, right_front_motor, left_rear_motor, right_rear_motor);
+    init_vehicle(&vehicle, left_front_motor, right_front_motor, left_rear_motor, right_rear_motor, vehicle_pids);
 
     //init communication
     comm_controller_init(&comm);
@@ -82,7 +120,7 @@ void setup() {
 
 
     xTaskCreatePinnedToCore(
-        odometryTask,           /* Task function */
+        vehicleControlTask,           /* Task function */
         "OdometryTask",         /* Name of task */
         10000,                  /* Stack size of task */
         &vehicle,               /* Parameter of the task - passing vehicle pointer */
@@ -124,7 +162,7 @@ void motorControlTask(void * parameter) {
     }
 }
 
-void odometryTask(void * parameter) {
+void vehicleControlTask(void * parameter) {
     Vehicle *vehicle = (Vehicle *)parameter;
     TickType_t xLastWakeTime;
     const TickType_t xFrequency = pdMS_TO_TICKS(ODOMETRY_DT * 1000);
@@ -135,7 +173,7 @@ void odometryTask(void * parameter) {
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
         
         if(xSemaphoreTake(vehicleMutex, portMAX_DELAY)) {
-            compute_odometry(vehicle);
+            vehicle_step(vehicle);
             xSemaphoreGive(vehicleMutex);
         }
     }

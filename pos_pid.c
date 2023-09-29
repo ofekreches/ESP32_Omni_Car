@@ -1,11 +1,11 @@
 #include "pos_pid.h"
 #include "configuration.h"
 
-void initPosPID(POS_PID *pid) {
-    pid->kp = POS_KP;
-    pid->ki = POS_KI;
-    pid->kd = POS_KD;
-    pid->i_windup = POS_I_WINDUP;
+void initPosPID(POS_PID *pid, float kp , float ki , float kd, float i_windup){
+    pid->kp = kp;
+    pid->ki = ki;
+    pid->kd = kd;
+    pid->i_windup = i_windup;
     pid->control_signal = 0;
     pid->last_error = 0;
     pid->integral = 0;

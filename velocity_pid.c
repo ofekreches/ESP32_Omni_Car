@@ -2,11 +2,11 @@
 #include "configuration.h"
 
 
-void initVelPID(VEL_PID *pid) {
-    pid->kp = VEL_KP;
-    pid->ki = VEL_KI;
-    pid->kd = VEL_KD;
-    pid->i_windup = VEL_I_WINDUP;
+void initVelPID(VEL_PID *pid, float kp , float ki , float kd, float i_windup) {
+    pid->kp = kp;
+    pid->ki = ki;
+    pid->kd = kd;
+    pid->i_windup = i_windup;
     pid->control_signal = 0;
     pid->last_error = 0;
     pid->integral = 0;
