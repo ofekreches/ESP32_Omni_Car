@@ -23,3 +23,6 @@
 6) correcting encoder odometry and variance based on sleepage
 
 
+# maybe this is too much for the little fellow?
+
+
