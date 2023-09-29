@@ -10,9 +10,16 @@
 
 1) receiving velocity twist message from serial
 2) computing odometry from encoders
-3) computing odometry from imu - need to add
-4) kalman filter - need to add
 5) computing vel pid for vehicle's 3 axis of movement. those control signal are later fed into the vel pid for each motor
 6) sending odometry data to host
+
+
+** TODO: **
+1) add imu
+2) odometry readings from imu
+3) kalman filter - imu + encoders
+4) add current sensing for each motor
+5) implement machine learning algorithm to predict wheel sleepage based on current readings
+6) correcting encoder odometry and variance based on sleepage
 
 
