@@ -14,7 +14,7 @@
 6) sending odometry data to host
 
 
-** TODO: **
+**TODO:**
 1) add imu
 2) odometry readings from imu
 3) kalman filter - imu + encoders
