@@ -8,8 +8,11 @@
 
 **core 0 - odometry and communication handling:**
 
-1) receiving steering and throttle data from host and converts it to different motor commands
-2) computing odometry
-3) sending odometry data to host
+1) receiving velocity twist message from serial
+2) computing odometry from encoders
+3) computing odometry from imu - need to add
+4) kalman filter - need to add
+5) computing vel pid for vehicle's 3 axis of movement. those control signal are later fed into the vel pid for each motor
+6) sending odometry data to host
 
 
