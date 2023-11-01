@@ -12,7 +12,7 @@ typedef struct {
 } POS_PID;
 
 // Function prototypes
-void initPosPID(POS_PID *pid);
+void initPosPID(POS_PID *pid, float kp , float ki , float kd, float i_windup);
 float pos_pid_step(POS_PID *pid, float desired_position, float current_position);
 
 #endif // POS_PID_H

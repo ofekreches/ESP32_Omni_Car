@@ -3,13 +3,13 @@
 #include <esp_timer.h>
 
 
-void initMotor(Motor *motor, Encoder enc, L298N driver, ControlMode control_Mode, POS_PID pos_pid, VEL_PID vel_pid) {
+void initMotor(Motor *motor, Encoder enc, L298N driver, POS_PID pos_pid, VEL_PID vel_pid) {
     motor->desired_position = 0;
     motor->current_position = 0;
     motor->desired_velocity = 0;
     motor->current_velocity = 0;
     motor->last_position = 0;
-    motor->controlMode = control_Mode;
+    motor->controlMode = VELOCITY;
     motor->encoder = enc;
     motor->l298n = driver;
     motor->pos_pid = pos_pid;

@@ -1,7 +1,6 @@
 #include "encoder.h"
 
-void initEncoder(Encoder *enc, int encoderPinA, int encoderPinB) {
-  
+void initEncoder(Encoder *enc, int encoderPinA, int encoderPinB) {  
   enc->encoderPinA = encoderPinA;
   enc->encoderPinB = encoderPinB;
   

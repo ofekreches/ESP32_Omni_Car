@@ -4,6 +4,10 @@
         "*.tcc": "c",
         "motor.h": "c",
         "configuration.h": "c",
-        "velocity_pid.h": "c"
+        "velocity_pid.h": "c",
+        "unordered_map": "c",
+        "math.h": "c",
+        "vehicle.h": "c",
+        "pos_pid.h": "c"
     }
 }

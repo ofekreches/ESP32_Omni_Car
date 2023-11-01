@@ -6,10 +6,11 @@
 
 
 typedef struct {
-    RxData[SIZE_OF_RX_DATA];
-    TxData[SIZE_OF_TX_DATA];
-    int comm_buad_rate = 115200;
+    byte RxData[SIZE_OF_RX_DATA];
+    byte TxData[SIZE_OF_TX_DATA];
+    int comm_baud_rate = 115200;
 } CommController;
+
 
 enum struct {
     POSITION,

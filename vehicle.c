@@ -148,6 +148,7 @@ void vehicle_step(Vehicle *vehicle) {
     vehicle->signal_state.velocity.x = vel_pid_step(vehicle->vehicle_pids.velocity_pid_x, vehicle->desired_state.velocity.x, vehicle->current_state.velocity.x);
     vehicle->signal_state.velocity.y = vel_pid_step(vehicle->vehicle_pids.velocity_pid_y, vehicle->desired_state.velocity.y, vehicle->current_state.velocity.y);
     vehicle->signal_state.velocity.angular = vel_pid_step(vehicle->vehicle_pids.velocity_pid_angular, vehicle->desired_state.velocity.angular, vehicle->current_state.velocity.angular);
+    translate_twist_to_motor_commands(vehicle);
 }
 
 

@@ -39,6 +39,7 @@ void receiveData(CommController *comm, Vehicle *vehicle) {
                     memcpy(&vehicle->desired_state.velocity.y, &comm->RxData[8], 4);
                     memcpy(&vehicle->desired_state.velocity.angular, &comm->RxData[12], 4);
                 }
+                sendData(comm ,vehicle);
             }
             else {
                 memset(comm->RxData, 0, SIZE_OF_RX_DATA);  // Clear the buffer

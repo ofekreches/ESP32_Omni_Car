@@ -54,12 +54,24 @@
 #define VEHICLE_LENGTH 0.3 //meter
 
 //timer configurations
-#define DT 0.01  // Sample time, you might need to adjust this - will be linked later to odometry calculation timer
+#define ODOMETRY_DT 0.01  // Sample time, you might need to adjust this - will be linked later to odometry calculation timer
+#define MOTOR_CONTROL_DT 0.01        // Run the motor task every 10ms
+#define COMMUNICATION_DT 0.01  // handle communication every 0.01 seconds = 10 ms
 
 // communication configuration
 #define SIZE_OF_RX_DATA 18  // 2 headrs +type of command + vector 3 of commands + check sum + tail
 #define SIZE_OF_TX_DATA 52  // 2 headers + odometry + variance + check sum + tail
 #define HEADER 200
 #define TAIL 199
+
+
+// tasks configuration
+#define MOTOR_CONTROL_CORE  1      // Using Core 1 for Motor Control
+#define ODOMETRY_CORE  0        // Using Core 0 for Odometry computation
+#define COMMUNICATION_CORE  0        // Using Core 0 for communication handling
+
+
+// imu configs
+#define DEG_TO_RAD (3.14159265358979323846 / 180.0)
 
 #endif // CONFIGURATION_H
