@@ -31,7 +31,7 @@
 
 #define LR_L298N_ENA 12
 #define LR_L298N_IN1 2
-#define LR_L298N_IN2 4
+#define LR_L298N_IN2 35
 
 #define RF_L298N_ENA 16
 #define RF_L298N_IN1 17
