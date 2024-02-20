@@ -5,10 +5,11 @@ void initEncoder(Encoder *enc, int encoderPinA, int encoderPinB) {
   enc->encoderPinB = encoderPinB;
   
   // Initialize the ESP32Encoder instance
-  enc->instance.attachHalfQuad(encoderPinA, encoderPinB);
-  enc->instance.clearCount();
+  enc->instance = createEncoder();
+  attachHalfQuad(enc->instance, encoderPinA, encoderPinB);
+  clearCount(enc->instance);
 }
 
 int readEncoder(Encoder *enc) {
-  return enc->instance.getCount();
+  return getEncoderCount(enc->instance);
 }

@@ -11,8 +11,17 @@ typedef struct {
   float integral;
 } POS_PID;
 
-// Function prototypes
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// Function declarations
 void initPosPID(POS_PID *pid, float kp , float ki , float kd, float i_windup);
 float pos_pid_step(POS_PID *pid, float desired_position, float current_position);
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif // POS_PID_H

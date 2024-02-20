@@ -13,6 +13,12 @@ typedef struct {
     float angular;  //heading in position
 } vector_3;
 
+typedef struct {
+    vector_3 position_error;
+    vector_3 velocity_error;
+    float static_error;  // the encoder error (right now its an assumption) . TODO dynamic error - based on experiments in the future
+} Variance;
+
 
 typedef struct {    
     vector_3 position;
@@ -21,20 +27,13 @@ typedef struct {
     int64_t time_stamp;
 } Odometry;
 
-
-typedef struct {
-    vector_3 position_error;
-    vector_3 velocity_error;
-    float static_error;  // the encoder error (right now its an assumption) . TODO dynamic error - based on experiments in the future
-} Variance;
-
 typedef struct {
     VEL_PID velocity_pid_x;
     VEL_PID velocity_pid_y;
-    VEL_PID velocity_pid_heading;
+    VEL_PID velocity_pid_angular;
     POS_PID pos_pid_x;
     POS_PID pos_pid_y;
-    POS_PID pos_pid_heading;
+    POS_PID pos_pid_angular;
 } Vehicle_PIDs;
 
 
@@ -52,14 +51,20 @@ typedef struct {   //omni wheels version
     Vehicle_PIDs vehicle_pids;
 } Vehicle;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-
-
-void init_vehicle_pids(Vehicle_PIDs *vehicle_pids , VEL_PID velocity_pid_x ,  VEL_PID velocity_pid_y, VEL_PID velocity_pid_heading , POS_PID pos_pid_x , POS_PID pos_pid_y , POS_PID pos_pid_heading);
+void init_vehicle_pids(Vehicle_PIDs *vehicle_pids , VEL_PID velocity_pid_x ,  VEL_PID velocity_pid_y, VEL_PID velocity_pid_angular , POS_PID pos_pid_x , POS_PID pos_pid_y , POS_PID pos_pid_angular) ;
 void init_vehicle(Vehicle *vehicle, Motor left_front_motor, Motor right_front_motor, Motor left_rear_motor, Motor right_rear_motor, Vehicle_PIDs vehicle_pids);
 void compute_odometry_from_encoders(Vehicle *vehicle);
-void compute_variance_from_encoders(Vehicle *vehicle);
+// void compute_variance_from_encoders(Vehicle *vehicle);
 void translate_twist_to_motor_commands(Vehicle *vehicle);
 void vehicle_step(Vehicle *vehicle);
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif // VEHICLE_H

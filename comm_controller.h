@@ -1,27 +1,34 @@
 #ifndef COMM_CONTROLLER_H
 #define COMM_CONTROLLER_H
 
-#include "configuration.h"
-#include "vehicle.h"s
+#include <stdint.h>
+#include <Arduino.h>
 
+#include "configuration.h"
+#include "vehicle.h"
 
 typedef struct {
-    byte RxData[SIZE_OF_RX_DATA];
-    byte TxData[SIZE_OF_TX_DATA];
-    int comm_baud_rate = 115200;
+    uint8_t RxData[SIZE_OF_RX_DATA];
+    uint8_t TxData[SIZE_OF_TX_DATA];
+    int comm_baud_rate;
 } CommController;
 
+typedef enum {
+    POSITION_MODE,
+    VELOCITY_MODE
+} DesiredControl;
 
-enum struct {
-    POSITION,
-    VELOCITY
-} DesiredControl ;
-
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // Function prototypes
-void receiveData(CommController *comm, Vehicle *Vehicle);
-void sendData(CommController *comm, Vehicle *Vehicle);
 void comm_controller_init(CommController *comm);
+int receiveData(CommController *comm, Vehicle *vehicle);
+void ProcessDataToSend(CommController *comm, const Vehicle *vehicle);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // COMM_CONTROLLER_H
