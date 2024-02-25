@@ -25,5 +25,6 @@ The vehicle operates by receiving Twist commands via serial communication, which
 ## improvements:
 - **improve velocity calculation**: implement moving average , maybe increase encoder count from half quad to quad
 - **add slip detection**: use current sensing and velocity calculation to detect wheel slipage
+- **vehicle pos pid**: implement position pid in the vehicle level
 
 ![cute_car](https://github.com/ofekreches/RTmcu/assets/104078036/dec9b97e-dc59-4e71-b4dd-ce8ee4d0f429)
