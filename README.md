@@ -14,9 +14,9 @@ This project showcases the low-level control system of an autonomous car, utiliz
 
 ## Code Overview
 
-- **Motor Control Task**: Manages the PID control of each motor - Core 0
-- **Vehicle Control Task**: Handles the computation of odometry data - Core 1
-- **Communication Task**: Manages incoming serial commands for vehicle movement and outgoing serial data for odometry - Core 1
+- **Motor Control Task**: Manages the PID control of each motor - **Core 0**
+- **Vehicle Control Task**: Handles the computation of odometry data - **Core 1**
+- **Communication Task**: Manages incoming serial commands for vehicle movement and outgoing serial data for odometry - **Core 1**
 
 ## Operation
 
