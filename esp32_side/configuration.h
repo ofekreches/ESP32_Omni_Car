@@ -70,7 +70,7 @@
 
 // communication configuration
 #define SERIAL_BAUDRATE 115200
-#define SIZE_OF_RX_DATA 17  // 2 headrs +type of command + vector 3 of commands + check sum + tail
+#define SIZE_OF_RX_DATA 53  // 2 headrs +type of command + payload 12 floats + check sum + tail
 #define SIZE_OF_TX_DATA 52  // 2 headers + odometry + variance + check sum + tail
 #define HEADER 200
 #define TAIL 199
@@ -88,6 +88,6 @@
 // control super important configuration
 #define D 0
 
-#define TIMEOUT_MICROSECONDS 300000 // 0.1 second, adjust as needed
+#define TIMEOUT_MICROSECONDS 300000 // 0.1 second
 
 #endif // CONFIGURATION_H

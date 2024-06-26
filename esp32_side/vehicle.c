@@ -69,42 +69,52 @@ void init_vehicle_pids(Vehicle_PIDs *vehicle_pids , VEL_PID velocity_pid_x ,  VE
 
 
 void compute_odometry_from_encoders(Vehicle *vehicle) {
-    // Check if there's a significant change in any part of the current state
-    // if (vehicle->current_state.position.x != vehicle->last_state.position.x ||
-    //     vehicle->current_state.position.y != vehicle->last_state.position.y ||
-    //     vehicle->current_state.position.angular != vehicle->last_state.position.angular) {
+    vehicle->last_state = vehicle->current_state;
 
-        vehicle->last_state = vehicle->current_state;
+    // Wheel radius
+    float r = vehicle->left_front_motor.wheelDiameter / 2.0; 
+    float lx_ly_sum = vehicle->vehicle_width + vehicle->vehicle_length;
 
-        // Wheel radius
-        float r = vehicle->left_front_motor.wheelDiameter / 2.0; 
-        float lx_ly_sum = vehicle->vehicle_width + vehicle->vehicle_length;
+    // Calculating base velocities using forward kinematics
+    float v_x = r/4.0 * (vehicle->left_front_motor.current_velocity + 
+                         vehicle->right_front_motor.current_velocity + 
+                         vehicle->left_rear_motor.current_velocity + 
+                         vehicle->right_rear_motor.current_velocity);
 
-        // Calculating base velocities using forward kinematics
-        vehicle->current_state.velocity.x = r/4.0 * (vehicle->left_front_motor.current_velocity + 
-                                                     vehicle->right_front_motor.current_velocity + 
-                                                     vehicle->left_rear_motor.current_velocity + 
-                                                     vehicle->right_rear_motor.current_velocity);
+    float v_y = r/4.0 * (-vehicle->left_front_motor.current_velocity + 
+                         vehicle->right_front_motor.current_velocity + 
+                         vehicle->left_rear_motor.current_velocity - 
+                         vehicle->right_rear_motor.current_velocity);
 
-        vehicle->current_state.velocity.y = r/4.0 * (-vehicle->left_front_motor.current_velocity + 
-                                                      vehicle->right_front_motor.current_velocity + 
-                                                      vehicle->left_rear_motor.current_velocity - 
-                                                      vehicle->right_rear_motor.current_velocity);
+    float v_angular = r/(4.0 * lx_ly_sum) * (-vehicle->left_front_motor.current_velocity + 
+                                             vehicle->right_front_motor.current_velocity - 
+                                             vehicle->left_rear_motor.current_velocity + 
+                                             vehicle->right_rear_motor.current_velocity);
 
-        vehicle->current_state.velocity.angular = r/(4.0 * lx_ly_sum) * (-vehicle->left_front_motor.current_velocity + 
-                                                                         vehicle->right_front_motor.current_velocity - 
-                                                                         vehicle->left_rear_motor.current_velocity + 
-                                                                         vehicle->right_rear_motor.current_velocity);
+    // Get the current time in microseconds
+    vehicle->current_state.time_stamp = esp_timer_get_time(); 
+    float dt = (vehicle->current_state.time_stamp - vehicle->last_state.time_stamp) / 1000000.0;
 
-        // Computing odometry (integrating velocities to get position)
-        vehicle->current_state.time_stamp = esp_timer_get_time(); // Get the current time in microseconds
-        float dt = (vehicle->current_state.time_stamp - vehicle->last_state.time_stamp) / 1000000.0;
+    // Convert velocities to world frame
+    float heading = vehicle->last_state.position.angular;
+    float cos_heading = cos(heading);
+    float sin_heading = sin(heading);
 
-        vehicle->current_state.position.x += vehicle->current_state.velocity.x * dt;
-        vehicle->current_state.position.y += vehicle->current_state.velocity.y * dt;
-        vehicle->current_state.position.angular += vehicle->current_state.velocity.angular * dt;
-        // compute_variance_from_encoders(vehicle);
-    // }
+    // World frame velocities
+    float world_v_x = v_x * cos_heading - v_y * sin_heading;
+    float world_v_y = v_x * sin_heading + v_y * cos_heading;
+
+    // Update current state velocities
+    vehicle->current_state.velocity.x = world_v_x;
+    vehicle->current_state.velocity.y = world_v_y;
+    vehicle->current_state.velocity.angular = v_angular;
+
+    // Integrate to update position
+    vehicle->current_state.position.x += world_v_x * dt;
+    vehicle->current_state.position.y += world_v_y * dt;
+    vehicle->current_state.position.angular += v_angular * dt;
+
+    compute_variance_from_encoders(vehicle);
 }
 
 
@@ -124,23 +134,23 @@ void translate_twist_to_motor_commands(Vehicle *vehicle) {
 
 
 
-// void compute_variance_from_encoders(Vehicle *vehicle) {
-//     // Calculate the differences between current and last odometry states
-//     float x_difference = vehicle->current_state.position.x - vehicle->last_state.position.x;
-//     float y_difference = vehicle->current_state.position.y - vehicle->last_state.position.y;
-//     float angular_difference = vehicle->current_state.position.angular - vehicle->last_state.position.angular;
-//     float velocity_x_difference = vehicle->current_state.velocity.x - vehicle->last_state.velocity.x;
-//     float velocity_y_difference = vehicle->current_state.velocity.y - vehicle->last_state.velocity.y;
-//     float angular_velocity_difference = vehicle->current_state.velocity.angular - vehicle->last_state.velocity.angular;
+void compute_variance_from_encoders(Vehicle *vehicle) {
+    // Calculate the differences between current and last odometry states
+    float x_difference = vehicle->current_state.position.x - vehicle->last_state.position.x;
+    float y_difference = vehicle->current_state.position.y - vehicle->last_state.position.y;
+    float angular_difference = vehicle->current_state.position.angular - vehicle->last_state.position.angular;
+    float velocity_x_difference = vehicle->current_state.velocity.x - vehicle->last_state.velocity.x;
+    float velocity_y_difference = vehicle->current_state.velocity.y - vehicle->last_state.velocity.y;
+    float angular_velocity_difference = vehicle->current_state.velocity.angular - vehicle->last_state.velocity.angular;
 
-//     // Compute variances based on differences and static error
-//     vehicle->current_state.odometry_variance.position_error.x = vehicle->current_state.odometry_variance.static_error * x_difference;
-//     vehicle->current_state.odometry_variance.position_error.y = vehicle->current_state.odometry_variance.static_error * y_difference;
-//     vehicle->current_state.odometry_variance.position_error.angular = vehicle->current_state.odometry_variance.static_error * angular_difference;
-//     vehicle->current_state.odometry_variance.velocity_error.x = vehicle->current_state.odometry_variance.static_error * velocity_x_difference;
-//     vehicle->current_state.odometry_variance.velocity_error.y = vehicle->current_state.odometry_variance.static_error * velocity_y_difference;
-//     vehicle->current_state.odometry_variance.velocity_error.angular = vehicle->current_state.odometry_variance.static_error * angular_velocity_difference;
-// }
+    // Compute variances based on differences and static error
+    vehicle->current_state.odometry_variance.position_error.x += vehicle->current_state.odometry_variance.static_error * x_difference;
+    vehicle->current_state.odometry_variance.position_error.y += vehicle->current_state.odometry_variance.static_error * y_difference;
+    vehicle->current_state.odometry_variance.position_error.angular += vehicle->current_state.odometry_variance.static_error * angular_difference;
+    vehicle->current_state.odometry_variance.velocity_error.x += vehicle->current_state.odometry_variance.static_error * velocity_x_difference;
+    vehicle->current_state.odometry_variance.velocity_error.y += vehicle->current_state.odometry_variance.static_error * velocity_y_difference;
+    vehicle->current_state.odometry_variance.velocity_error.angular += vehicle->current_state.odometry_variance.static_error * angular_velocity_difference;
+}
 
 
 void vehicle_step(Vehicle *vehicle) {

@@ -54,7 +54,6 @@ void computeVelocity(Motor *motor) {
         motor->last_position = motor->current_position;
         motor->lastUpdateTime = currentTime; // Update the last update time regardless
     } 
-
 }
 
 // void computeVelocity(Motor *motor) {

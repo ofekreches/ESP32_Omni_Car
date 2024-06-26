@@ -16,11 +16,10 @@ void comm_controller_init(CommController *comm) {
 
 int receiveData(CommController *comm, Vehicle *vehicle) {
   int valid_data = 0;
-  // if (comm->RxData[0] == HEADER && comm->RxData[1] == HEADER && comm->RxData[SIZE_OF_RX_DATA - 1] == TAIL) {
   if (comm->RxData[0] == HEADER && comm->RxData[1] == HEADER) {
     valid_data = 1;
     uint8_t checksum = 0;
-    for (int i = 3; i < 12; i++) {
+    for (int i = 3; i < SIZE_OF_RX_DATA - 2 ; i++) {
         checksum += comm->RxData[i];
     }
     if (comm->RxData[SIZE_OF_RX_DATA - 2] == checksum) {  //passed all integrity checks
@@ -35,6 +34,21 @@ int receiveData(CommController *comm, Vehicle *vehicle) {
           memcpy(&vehicle->desired_state.velocity.y, &comm->RxData[7], 4);
           memcpy(&vehicle->desired_state.velocity.angular, &comm->RxData[11], 4);
       }
+      else if (comm->RxData[2] == ODOMETRY_MODE) {
+        
+          memcpy(&vehicle->current_state.position.x, &comm->RxData[3], 4);
+          memcpy(&vehicle->current_state.position.y, &comm->RxData[7], 4);
+          memcpy(&vehicle->current_state.position.angular, &comm->RxData[11], 4);
+          memcpy(&vehicle->current_state.odometry_variance.position_error.x, &comm->RxData[15], 4);
+          memcpy(&vehicle->current_state.odometry_variance.position_error.y, &comm->RxData[19], 4);
+          memcpy(&vehicle->current_state.odometry_variance.position_error.angular, &comm->RxData[23], 4);
+          memcpy(&vehicle->current_state.velocity.x, &comm->RxData[27], 4);
+          memcpy(&vehicle->current_state.velocity.y, &comm->RxData[31], 4);
+          memcpy(&vehicle->current_state.velocity.angular, &comm->RxData[35], 4);
+          memcpy(&vehicle->current_state.odometry_variance.velocity_error.x, &comm->RxData[39], 4);
+          memcpy(&vehicle->current_state.odometry_variance.velocity_error.y, &comm->RxData[43], 4);
+          memcpy(&vehicle->current_state.odometry_variance.velocity_error.angular, &comm->RxData[47], 4);
+      }
     }
     else {
         memset(comm->RxData, 0, SIZE_OF_RX_DATA);  // Clear the buffer
@@ -45,6 +59,7 @@ int receiveData(CommController *comm, Vehicle *vehicle) {
   }
   return valid_data;
 }
+
 
 
 
