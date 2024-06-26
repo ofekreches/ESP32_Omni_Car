@@ -73,23 +73,14 @@ void compute_odometry_from_encoders(Vehicle *vehicle) {
 
     // Wheel radius
     float r = vehicle->left_front_motor.wheelDiameter / 2.0; 
-    float lx_ly_sum = vehicle->vehicle_width + vehicle->vehicle_length;
+    float wheel_base = vehicle->vehicle_width;
 
     // Calculating base velocities using forward kinematics
-    float v_x = r/4.0 * (vehicle->left_front_motor.current_velocity + 
-                         vehicle->right_front_motor.current_velocity + 
-                         vehicle->left_rear_motor.current_velocity + 
-                         vehicle->right_rear_motor.current_velocity);
+    float v_x = r / 2.0 * (vehicle->left_front_motor.current_velocity + 
+                           vehicle->right_front_motor.current_velocity);
 
-    float v_y = r/4.0 * (-vehicle->left_front_motor.current_velocity + 
-                         vehicle->right_front_motor.current_velocity + 
-                         vehicle->left_rear_motor.current_velocity - 
-                         vehicle->right_rear_motor.current_velocity);
-
-    float v_angular = r/(4.0 * lx_ly_sum) * (-vehicle->left_front_motor.current_velocity + 
-                                             vehicle->right_front_motor.current_velocity - 
-                                             vehicle->left_rear_motor.current_velocity + 
-                                             vehicle->right_rear_motor.current_velocity);
+    float v_angular = r / wheel_base * (vehicle->right_front_motor.current_velocity - 
+                                        vehicle->left_front_motor.current_velocity);
 
     // Get the current time in microseconds
     vehicle->current_state.time_stamp = esp_timer_get_time(); 
@@ -101,8 +92,8 @@ void compute_odometry_from_encoders(Vehicle *vehicle) {
     float sin_heading = sin(heading);
 
     // World frame velocities
-    float world_v_x = v_x * cos_heading - v_y * sin_heading;
-    float world_v_y = v_x * sin_heading + v_y * cos_heading;
+    float world_v_x = v_x * cos_heading;
+    float world_v_y = v_x * sin_heading;
 
     // Update current state velocities
     vehicle->current_state.velocity.x = world_v_x;
@@ -121,15 +112,18 @@ void compute_odometry_from_encoders(Vehicle *vehicle) {
 
 void translate_twist_to_motor_commands(Vehicle *vehicle) {
     // Wheel radius
-    float r = vehicle->left_front_motor.wheelDiameter / 2.0; 
-    float lx_ly_sum = vehicle->vehicle_width + vehicle->vehicle_length;
+    float r = vehicle->left_front_motor.wheelDiameter / 2.0;
+    float wheel_base = vehicle->vehicle_width;
+
+    // Desired linear and angular velocities
+    float v_x = vehicle->desired_state.velocity.x;
+    float v_angular = vehicle->desired_state.velocity.angular;
 
     // Calculating wheel angular velocities using inverse kinematics
-    vehicle->left_front_motor.desired_velocity = (1.0/r) * (vehicle->desired_state.velocity.x - vehicle->desired_state.velocity.y - lx_ly_sum * vehicle->desired_state.velocity.angular);
-    vehicle->right_front_motor.desired_velocity = (1.0/r) * (vehicle->desired_state.velocity.x + vehicle->desired_state.velocity.y + lx_ly_sum * vehicle->desired_state.velocity.angular);
-    vehicle->left_rear_motor.desired_velocity = (1.0/r) * (vehicle->desired_state.velocity.x + vehicle->desired_state.velocity.y - lx_ly_sum * vehicle->desired_state.velocity.angular);
-    vehicle->right_rear_motor.desired_velocity = (1.0/r) * (vehicle->desired_state.velocity.x - vehicle->desired_state.velocity.y + lx_ly_sum * vehicle->desired_state.velocity.angular);
+    vehicle->left_front_motor.desired_velocity = (1.0 / r) * (v_x - (wheel_base / 2.0) * v_angular);
+    vehicle->right_front_motor.desired_velocity = (1.0 / r) * (v_x + (wheel_base / 2.0) * v_angular);
 }
+
 
 
 
